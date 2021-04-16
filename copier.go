@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 // These flags define options for tag handling
@@ -22,6 +23,10 @@ const (
 
 	// Denotes that the value as been copied
 	hasCopied
+)
+
+var (
+	timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 )
 
 // Option sets copy options
@@ -423,6 +428,9 @@ func set(to, from reflect.Value, deepCopy bool) bool {
 			}
 		} else if from.Kind() == reflect.Ptr {
 			return set(to, from.Elem(), deepCopy)
+		} else if from.Kind() == reflect.Struct && from.Type() == timeType && to.Kind() != reflect.Struct {
+			from = reflect.ValueOf(from.Interface().(time.Time).Unix())
+			return set(to, from, deepCopy)
 		} else {
 			return false
 		}
